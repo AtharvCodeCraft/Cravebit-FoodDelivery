@@ -1,0 +1,5 @@
+review_id,user_id,restaurant_id,rating,comment
+1,1,1,5,Excellent food!
+2,2,3,4,Very tasty.
+3,3,2,5,Loved it!
+4,4,4,4,Great service.

@@ -1,0 +1,11 @@
+item_id,restaurant_id,name,category,price,veg
+101,1,Poha,Breakfast,30,True
+102,1,Jalebi,Dessert,25,True
+103,2,Paneer Butter Masala,Main Course,220,True
+104,2,Masala Dosa,South Indian,140,True
+105,3,Indori Poha,Breakfast,35,True
+106,3,Kachori,Snacks,30,True
+107,4,Garadu,Street Food,50,True
+108,4,Pav Bhaji,Fast Food,90,True
+109,5,Chicken Biryani,Main Course,250,False
+110,5,Butter Naan,Bread,40,True
