@@ -27,45 +27,45 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-[var(--background)] transition-colors duration-300">
       {/* Background decorations */}
-      <div className="absolute top-0 left-0 w-full h-full bg-slate-50 -z-10"></div>
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-200 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-red-200 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="absolute top-0 left-0 w-full h-full -z-10"></div>
+      <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-500/20 rounded-full filter blur-3xl opacity-70 animate-blob"></div>
+      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-red-500/20 rounded-full filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl shadow-2xl relative z-10"
+        className="max-w-md w-full space-y-8 bg-[var(--card)] p-10 rounded-3xl shadow-2xl relative z-10 border border-[var(--border)]"
       >
         <div>
-          <h2 className="mt-2 text-center text-4xl font-extrabold text-gray-900 tracking-tight">
+          <h2 className="mt-2 text-center text-4xl font-extrabold text-[var(--foreground)] tracking-tight">
             Welcome Back
           </h2>
-          <p className="mt-3 text-center text-sm text-gray-600">
+          <p className="mt-3 text-center text-sm text-[var(--muted-foreground)]">
             Sign in to your account and satisfy your cravings.
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
+          <div className="rounded-md space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email address</label>
+              <label className="block text-sm font-bold text-[var(--foreground)] mb-1">Email address</label>
               <input
                 type="email"
                 required
-                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm transition-colors"
+                className="appearance-none relative block w-full px-4 py-3 bg-[var(--muted)] border-transparent text-[var(--foreground)] rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-[var(--card)] focus:shadow-md sm:text-sm transition-all duration-300 placeholder-[var(--muted-foreground)]"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <label className="block text-sm font-bold text-[var(--foreground)] mb-1">Password</label>
               <input
                 type="password"
                 required
-                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 rounded-xl focus:outline-none focus:ring-orange-500 focus:border-orange-500 focus:z-10 sm:text-sm transition-colors"
+                className="appearance-none relative block w-full px-4 py-3 bg-[var(--muted)] border-transparent text-[var(--foreground)] rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-[var(--card)] focus:shadow-md sm:text-sm transition-all duration-300 placeholder-[var(--muted-foreground)]"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -76,16 +76,16 @@ const LoginPage = () => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all shadow-md hover:shadow-lg"
+              className="group relative w-full flex justify-center py-3 px-4 text-sm font-bold rounded-xl text-white bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95"
             >
               Sign In
             </button>
           </div>
           
           <div className="text-center mt-4">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-[var(--muted-foreground)]">
               Don't have an account?{' '}
-              <Link to="/register" className="font-medium text-orange-600 hover:text-orange-500 transition-colors">
+              <Link to="/register" className="font-bold text-orange-500 hover:text-orange-400 transition-colors">
                 Sign up
               </Link>
             </span>

@@ -12,8 +12,8 @@ const CartPage = () => {
   if (cartItems.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Cart is Empty</h2>
-        <p className="text-gray-500 mb-8">Looks like you haven't added any food yet.</p>
+        <h2 className="text-3xl font-bold text-[var(--foreground)] mb-4">Your Cart is Empty</h2>
+        <p className="text-[var(--muted-foreground)] mb-8">Looks like you haven't added any food yet.</p>
         <Link
           to="/menu"
           className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-full font-bold transition-colors shadow-md hover:shadow-lg inline-block"
@@ -26,45 +26,45 @@ const CartPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Cart</h1>
+      <h1 className="text-3xl font-bold text-[var(--foreground)] mb-8">Your Cart</h1>
 
       <div className="flex flex-col lg:flex-row gap-8">
         
         {/* Cart Items List */}
         <div className="lg:w-2/3">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-            <div className="flex justify-between border-b pb-4 mb-4">
-              <span className="font-semibold text-gray-600">Item</span>
-              <span className="font-semibold text-gray-600">Total</span>
+          <div className="bg-[var(--card)] rounded-3xl shadow-sm border border-[var(--border)] p-6">
+            <div className="flex justify-between border-b border-[var(--border)] pb-4 mb-4">
+              <span className="font-semibold text-[var(--muted-foreground)]">Item</span>
+              <span className="font-semibold text-[var(--muted-foreground)]">Total</span>
             </div>
 
             {cartItems.map((item) => (
-              <div key={item.foodItemId} className="flex items-center justify-between py-4 border-b border-gray-50 last:border-0">
+              <div key={item.foodItemId} className="flex items-center justify-between py-4 border-b border-[var(--border)] last:border-0">
                 <div className="flex items-center gap-4 flex-1">
                   <div>
-                    <h3 className="font-bold text-gray-900">{item.name}</h3>
-                    <p className="text-sm text-gray-500">₹{item.price}</p>
+                    <h3 className="font-bold text-[var(--foreground)]">{item.name}</h3>
+                    <p className="text-sm text-[var(--muted-foreground)]">₹{item.price}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center bg-gray-100 rounded-full px-2">
+                  <div className="flex items-center bg-[var(--muted)] rounded-full px-2">
                     <button
                       onClick={() => updateQuantity(item.foodItemId, item.quantity - 1)}
-                      className="p-1 hover:text-orange-500 transition-colors"
+                      className="p-1 hover:text-orange-500 transition-colors text-[var(--foreground)]"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                    <span className="w-8 text-center font-semibold text-[var(--foreground)]">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.foodItemId, item.quantity + 1)}
-                      className="p-1 hover:text-orange-500 transition-colors"
+                      className="p-1 hover:text-orange-500 transition-colors text-[var(--foreground)]"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <span className="font-bold w-20 text-right">₹{item.price * item.quantity}</span>
+                  <span className="font-bold w-20 text-right text-[var(--foreground)]">₹{item.price * item.quantity}</span>
 
                   <button
                     onClick={() => removeFromCart(item.foodItemId)}
@@ -89,26 +89,26 @@ const CartPage = () => {
 
         {/* Order Summary */}
         <div className="lg:w-1/3">
-          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sticky top-24">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h2>
+          <div className="bg-[var(--card)] rounded-3xl shadow-sm border border-[var(--border)] p-6 sticky top-24">
+            <h2 className="text-xl font-bold text-[var(--foreground)] mb-6">Order Summary</h2>
             
-            <div className="space-y-4 text-gray-600 mb-6 pb-6 border-b border-gray-100">
+            <div className="space-y-4 text-[var(--muted-foreground)] mb-6 pb-6 border-b border-[var(--border)]">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="font-semibold text-gray-900">₹{total}</span>
+                <span className="font-semibold text-[var(--foreground)]">₹{total}</span>
               </div>
               <div className="flex justify-between">
                 <span>Delivery Fee</span>
-                <span className="font-semibold text-gray-900">₹40</span>
+                <span className="font-semibold text-[var(--foreground)]">₹40</span>
               </div>
               <div className="flex justify-between">
                 <span>Taxes & Charges</span>
-                <span className="font-semibold text-gray-900">₹{Math.round(total * 0.05)}</span>
+                <span className="font-semibold text-[var(--foreground)]">₹{Math.round(total * 0.05)}</span>
               </div>
             </div>
 
             <div className="flex justify-between items-center mb-8">
-              <span className="text-lg font-bold text-gray-900">Total</span>
+              <span className="text-lg font-bold text-[var(--foreground)]">Total</span>
               <span className="text-2xl font-bold text-orange-600">
                 ₹{total + 40 + Math.round(total * 0.05)}
               </span>

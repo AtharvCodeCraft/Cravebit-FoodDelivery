@@ -23,12 +23,14 @@ const getFoodItemsByRestaurant = async (req, res) => {
     const foodItems = await FoodItem.find({
       restaurantId: req.params.id,
       isAvailable: true,
-    });
+    }).populate('restaurantId', 'name');
     res.json(foodItems);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+const Review = require('../models/Review');
 
 // @desc    Get single food item
 // @route   GET /api/food/:id
@@ -37,14 +39,30 @@ const getFoodItemById = async (req, res) => {
   try {
     const foodItem = await FoodItem.findById(req.params.id).populate(
       'restaurantId',
-      'name address'
+      'name address image rating deliveryTime'
     );
 
-    if (foodItem) {
-      res.json(foodItem);
-    } else {
-      res.status(404).json({ message: 'Food item not found' });
+    if (!foodItem) {
+      return res.status(404).json({ message: 'Food item not found' });
     }
+
+    // Get reviews for this food item
+    const reviews = await Review.find({ foodItemId: req.params.id })
+      .populate('userId', 'name image')
+      .sort({ createdAt: -1 });
+
+    // Get related food items (same category, different item)
+    const relatedItems = await FoodItem.find({
+      category: foodItem.category,
+      _id: { $ne: foodItem._id },
+      isAvailable: true
+    }).limit(4);
+
+    res.json({
+      ...foodItem._doc,
+      reviews,
+      relatedItems
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

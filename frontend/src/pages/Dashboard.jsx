@@ -18,7 +18,7 @@ const Dashboard = () => {
           },
         };
         const endpoint = '/api/orders/myorders';
-        const { data } = await axios.get(`http://localhost:5000${endpoint}`, config);
+        const { data } = await axios.get(endpoint, config);
         setOrders(data);
       } catch (error) {
         console.error('Error fetching orders', error);
@@ -35,7 +35,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return;
     
-    const socket = io('http://localhost:5000');
+    const socket = io(); // Connects to same origin (proxy will handle)
 
     // Subscribe to specific order rooms if user
     if (user.role === 'user' && orders.length > 0) {

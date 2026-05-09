@@ -141,11 +141,10 @@ async function seedSeedUsers() {
     // upsert: don't wipe real user accounts
     let user = await User.findOne({ email: u.email }).select('+password');
     if (!user) {
-      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
       user = await User.create({
         name: u.name,
         email: u.email,
-        password: hashedPassword,
+        password: defaultPassword, // Model's pre-save hook will hash this
         phone: u.phone,
         role: 'user',
       });
