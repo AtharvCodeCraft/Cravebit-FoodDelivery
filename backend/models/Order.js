@@ -41,7 +41,7 @@ const orderSchema = mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['Card', 'Cash', 'UPI'],
+      enum: ['Card', 'Cash', 'UPI', 'Online'],
       required: true,
     },
     paymentStatus: {
@@ -50,6 +50,12 @@ const orderSchema = mongoose.Schema(
       default: 'Pending',
     },
     paymentId: {
+      type: String,
+    },
+    razorpayOrderId: {
+      type: String,
+    },
+    razorpaySignature: {
       type: String,
     },
     orderStatus: {

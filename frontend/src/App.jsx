@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import FloatingCart from './components/FloatingCart';
+import AIChatbot from './components/AIChatbot';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -17,6 +18,7 @@ import ProfilePage from './pages/ProfilePage';
 import FoodDetails from './pages/FoodDetails';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import PaymentSuccess from './pages/PaymentSuccess';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
 import RestaurantDashboard from './pages/restaurant/RestaurantDashboard';
@@ -35,6 +37,7 @@ function App() {
           <Route path="/food/:id" element={<FoodDetails />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/orders" element={<Dashboard />} /> {/* Dashboard acts as Orders page */}
           <Route path="/profile" element={<ProfilePage />} />
@@ -57,6 +60,7 @@ function App() {
       </main>
       <Footer />
       <FloatingCart />
+      <AIChatbot />
       <ToastContainer 
         position="bottom-right" 
         autoClose={3000} 

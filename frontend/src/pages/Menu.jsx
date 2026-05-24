@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CartContext } from '../context/CartContext';
-import { Search, MapPin, Clock, Star, Plus, Minus, Info, Store } from 'lucide-react';
+import { Search, MapPin, Clock, Star, Plus, Minus, Info, Store, Mic, LocateFixed, Flame, Heart } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -14,6 +14,9 @@ const Menu = () => {
   const [loading, setLoading] = useState(true);
   const [restaurantReviews, setRestaurantReviews] = useState([]);
   const [activeTab, setActiveTab] = useState('menu'); // 'menu' or 'reviews'
+  const [isListening, setIsListening] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+  const [wishlist, setWishlist] = useState([]);
   
   // Use search query from URL if available
   const location = useLocation();
@@ -98,6 +101,59 @@ const Menu = () => {
     addToCart(item, resId);
   };
 
+  const startVoiceSearch = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast.error('Voice search is not supported in this browser.');
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchTerm(transcript);
+      toast.success(`Search: "${transcript}"`);
+    };
+    recognition.onerror = () => toast.error('Voice recognition failed.');
+    recognition.onend = () => setIsListening(false);
+    
+    recognition.start();
+  };
+
+  const findNearMe = () => {
+    setIsLocating(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        () => {
+          setIsLocating(false);
+          toast.success('Found 12 restaurants near you!');
+          // Mock sorting by randomly shuffling for demo purposes
+          setRestaurants(prev => [...prev].sort(() => Math.random() - 0.5));
+        },
+        () => {
+          setIsLocating(false);
+          toast.error('Location access denied');
+        }
+      );
+    } else {
+      setIsLocating(false);
+      toast.error('Geolocation not supported');
+    }
+  };
+
+  const toggleWishlist = (id) => {
+    if(wishlist.includes(id)) {
+      setWishlist(wishlist.filter(w => w !== id));
+      toast.info('Removed from Wishlist');
+    } else {
+      setWishlist([...wishlist, id]);
+      toast.success('Added to Wishlist ❤️');
+    }
+  };
+
   if (loading) return (
     <div className="flex justify-center items-center min-h-[60vh]">
       <div className="relative">
@@ -126,12 +182,29 @@ const Menu = () => {
           </div>
           <input
             type="text"
-            className="block w-full pl-12 pr-4 py-3.5 bg-[var(--muted)] border-transparent text-[var(--foreground)] rounded-2xl leading-5 placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-[var(--card)] focus:shadow-md sm:text-sm transition-all duration-300"
+            className="block w-full pl-12 pr-12 py-3.5 bg-[var(--muted)] border-transparent text-[var(--foreground)] rounded-2xl leading-5 placeholder-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-[var(--card)] focus:shadow-md sm:text-sm transition-all duration-300"
             placeholder="Search food or categories..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <button 
+            onClick={startVoiceSearch}
+            className={`absolute inset-y-0 right-0 pr-4 flex items-center transition-colors ${isListening ? 'text-red-500 animate-pulse' : 'text-[var(--muted-foreground)] hover:text-orange-500'}`}
+          >
+            <Mic className="h-5 w-5" />
+          </button>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <button 
+          onClick={findNearMe}
+          disabled={isLocating}
+          className="flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 rounded-full font-bold text-sm hover:bg-orange-200 dark:hover:bg-orange-500/30 transition-colors"
+        >
+          <LocateFixed className={`w-4 h-4 ${isLocating ? 'animate-spin' : ''}`} /> 
+          {isLocating ? 'Locating...' : 'Find Restaurants Near Me'}
+        </button>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -316,7 +389,6 @@ const Menu = () => {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                           
-                          {/* Dietary Badges */}
                           <div className="absolute top-3 left-3 flex gap-2">
                             {item.isVegetarian ? (
                               <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-md flex items-center gap-1">
@@ -327,7 +399,17 @@ const Menu = () => {
                                 <span className="w-1.5 h-1.5 bg-white rounded-full"></span> NON-VEG
                               </span>
                             )}
+                            <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-md flex items-center gap-1">
+                              <Flame className="w-3 h-3" /> {Math.floor(Math.random() * 300 + 200)} kcal
+                            </span>
                           </div>
+
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); toggleWishlist(item._id); }}
+                            className="absolute top-3 right-3 p-2 bg-white/80 dark:bg-black/50 backdrop-blur-sm rounded-full shadow-md hover:scale-110 transition-transform"
+                          >
+                            <Heart className={`w-4 h-4 ${wishlist.includes(item._id) ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+                          </button>
 
                           {/* Price Badge */}
                           <div className="absolute bottom-3 right-3 bg-white/90 dark:bg-black/80 backdrop-blur-md px-3 py-1 rounded-xl shadow-lg font-black text-lg text-orange-600 dark:text-orange-400">

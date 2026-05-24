@@ -5,6 +5,17 @@ import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 
+// Helper to load Razorpay script dynamically
+const loadScript = (src) => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const CheckoutPage = () => {
   const { user } = useContext(AuthContext);
   const { cartItems, restaurantId, getCartTotal, clearCart } = useContext(CartContext);
@@ -18,6 +29,8 @@ const CheckoutPage = () => {
     country: 'India',
   });
   const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -27,9 +40,20 @@ const CheckoutPage = () => {
   }, [user, navigate]);
 
   const subtotal = getCartTotal();
-  const tax = Math.round(subtotal * 0.05);
+  const tax = Math.round((subtotal - discount) * 0.05);
   const deliveryFee = 40;
-  const totalAmount = subtotal + tax + deliveryFee;
+  const totalAmount = subtotal - discount + tax + deliveryFee;
+
+  const applyCoupon = () => {
+    if (couponCode.toUpperCase() === 'CRAVE20') {
+      const discountAmt = Math.round(subtotal * 0.2);
+      setDiscount(discountAmt);
+      toast.success(`Coupon applied! Saved ₹${discountAmt}`);
+    } else {
+      setDiscount(0);
+      toast.error('Invalid coupon code');
+    }
+  };
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
@@ -38,33 +62,94 @@ const CheckoutPage = () => {
       return;
     }
 
-    try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      };
+    const config = {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
 
-      // The 'data' variable was not used after destructuring, so we can remove the destructuring
-      // or assign the full response if needed later. For now, we just call the API.
-      await axios.post(
-        'http://localhost:5000/api/orders',
-        {
-          restaurantId,
-          items: cartItems,
-          deliveryAddress: address,
-          paymentMethod,
-          totalAmount,
-        },
-        config
-      );
+    if (paymentMethod === 'Online') {
+      const res = await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+      if (!res) {
+        toast.error('Razorpay SDK failed to load. Are you online?');
+        return;
+      }
 
-      toast.success('Order placed successfully!');
-      clearCart();
-      // Navigate to order tracking/history (implementing dashboard route for now)
-      navigate('/dashboard'); 
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Error placing order');
+      try {
+        // Create order on our backend
+        const { data: rzpOrder } = await axios.post('/api/payment/razorpay-order', { amount: totalAmount }, config);
+        const { data: keyData } = await axios.get('/api/payment/config', config);
+
+        const options = {
+          key: keyData.keyId,
+          amount: rzpOrder.amount,
+          currency: rzpOrder.currency,
+          name: 'CraveBite',
+          description: 'Food Delivery Order Payment',
+          order_id: rzpOrder.id,
+          handler: async function (response) {
+            try {
+              // Verify and save order
+              const responseOrder = await axios.post(
+                '/api/orders',
+                {
+                  restaurantId,
+                  items: cartItems,
+                  deliveryAddress: address,
+                  paymentMethod: 'Online',
+                  totalAmount,
+                  paymentId: response.razorpay_payment_id,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpaySignature: response.razorpay_signature,
+                },
+                config
+              );
+              toast.success('Payment successful & Order placed!');
+              clearCart();
+              navigate('/payment-success', { state: { order: responseOrder.data } });
+            } catch (err) {
+              toast.error(err.response?.data?.message || 'Error saving order after payment');
+            }
+          },
+          prefill: {
+            name: user.name,
+            email: user.email,
+          },
+          theme: {
+            color: '#f97316', // Orange-500
+          },
+        };
+
+        const paymentObject = new window.Razorpay(options);
+        paymentObject.on('payment.failed', function (response) {
+          toast.error('Payment Failed: ' + response.error.description);
+        });
+        paymentObject.open();
+
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Error initiating payment');
+      }
+    } else {
+      // Cash payment
+      try {
+        const responseOrder = await axios.post(
+          '/api/orders',
+          {
+            restaurantId,
+            items: cartItems,
+            deliveryAddress: address,
+            paymentMethod: 'Cash',
+            totalAmount,
+          },
+          config
+        );
+
+        toast.success('Order placed successfully!');
+        clearCart();
+        navigate('/payment-success', { state: { order: responseOrder.data } }); 
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Error placing order');
+      }
     }
   };
 
@@ -140,15 +225,16 @@ const CheckoutPage = () => {
                 />
                 <span className="ml-3 font-medium text-[var(--foreground)]">Cash on Delivery</span>
               </label>
-              <label className="flex items-center p-4 border border-[var(--border)] rounded-xl cursor-pointer hover:bg-[var(--muted)] transition-colors opacity-50">
+              <label className="flex items-center p-4 border border-[var(--border)] rounded-xl cursor-pointer hover:bg-[var(--muted)] transition-colors">
                 <input
                   type="radio"
                   name="payment"
-                  value="Card"
-                  disabled
+                  value="Online"
+                  checked={paymentMethod === 'Online'}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
                   className="h-4 w-4 text-orange-600 focus:ring-orange-500"
                 />
-                <span className="ml-3 font-medium text-[var(--foreground)]">Online Payment (Mocked)</span>
+                <span className="ml-3 font-medium text-[var(--foreground)]">Online Payment (Razorpay)</span>
               </label>
             </div>
           </div>
@@ -173,6 +259,12 @@ const CheckoutPage = () => {
                 <span>Subtotal</span>
                 <span className="font-medium text-[var(--foreground)]">₹{subtotal}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600 font-bold">
+                  <span>Discount (CRAVE20)</span>
+                  <span>-₹{discount}</span>
+                </div>
+              )}
               <div className="flex justify-between text-[var(--muted-foreground)]">
                 <span>Delivery</span>
                 <span className="font-medium text-[var(--foreground)]">₹{deliveryFee}</span>
@@ -181,6 +273,24 @@ const CheckoutPage = () => {
                 <span>Tax</span>
                 <span className="font-medium text-[var(--foreground)]">₹{tax}</span>
               </div>
+            </div>
+
+            {/* Coupon System */}
+            <div className="flex gap-2 mb-6">
+              <input 
+                type="text" 
+                placeholder="Enter Coupon Code" 
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                className="flex-1 px-4 py-2 bg-[var(--muted)] border border-[var(--border)] rounded-xl focus:ring-orange-500 focus:border-orange-500 text-[var(--foreground)] text-sm"
+              />
+              <button 
+                type="button"
+                onClick={applyCoupon}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-[var(--foreground)] rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm"
+              >
+                Apply
+              </button>
             </div>
 
             <div className="flex justify-between items-center mb-8">

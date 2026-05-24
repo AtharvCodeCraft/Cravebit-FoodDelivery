@@ -33,14 +33,14 @@ const RestaurantDashboard = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/restaurants', config);
+        const { data } = await axios.get('/api/restaurants', config);
         if (data.length > 0) {
           const r = data[0];
           setRestaurant(r);
           const [ana, ord, men] = await Promise.all([
-            axios.get(`http://localhost:5000/api/restaurant-mgmt/${r._id}/analytics`, config),
-            axios.get(`http://localhost:5000/api/restaurant-mgmt/${r._id}/orders`, config),
-            axios.get(`http://localhost:5000/api/restaurant-mgmt/${r._id}/menu`, config),
+            axios.get(`/api/restaurant-mgmt/${r._id}/analytics`, config),
+            axios.get(`/api/restaurant-mgmt/${r._id}/orders`, config),
+            axios.get(`/api/restaurant-mgmt/${r._id}/menu`, config),
           ]);
           setAnalytics(ana.data);
           setOrders(ord.data);
@@ -58,7 +58,7 @@ const RestaurantDashboard = () => {
   // Real-time order notifications
   useEffect(() => {
     if (!restaurant) return;
-    const socket = io('http://localhost:5000');
+    const socket = io();
     socket.on('new_order', (order) => {
       if (order.restaurantId === restaurant._id) {
         setOrders(prev => [order, ...prev]);

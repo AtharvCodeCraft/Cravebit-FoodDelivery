@@ -12,7 +12,7 @@ const AdminOrders = ({ user }) => {
   useEffect(() => {
     fetchOrders();
     
-    const socket = io('http://localhost:5000');
+    const socket = io();
     socket.on('new_order', (order) => {
       setOrders(prev => [order, ...prev]);
       toast.info('New order received!');
@@ -32,7 +32,7 @@ const AdminOrders = ({ user }) => {
   const fetchOrders = async () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const { data } = await axios.get('http://localhost:5000/api/orders', config);
+      const { data } = await axios.get('/api/orders', config);
       setOrders(data);
     } catch (error) {
       toast.error('Failed to fetch orders');
@@ -44,7 +44,7 @@ const AdminOrders = ({ user }) => {
   const updateOrderStatus = async (orderId, status) => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      await axios.put(`http://localhost:5000/api/orders/${orderId}/status`, { status }, config);
+      await axios.put(`/api/orders/${orderId}/status`, { status }, config);
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, orderStatus: status } : o));
       toast.success(`Order status updated to ${status}`);
     } catch (err) {

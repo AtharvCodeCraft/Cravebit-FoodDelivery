@@ -1,8 +1,56 @@
 import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { Package, Clock, MapPin, Truck } from 'lucide-react';
+import { Package, Clock, MapPin, Truck, CheckCircle } from 'lucide-react';
 import { io } from 'socket.io-client';
+import { toast } from 'react-toastify';
+
+const OrderTracker = ({ status }) => {
+  const stages = ['Placed', 'Preparing', 'Out for Delivery', 'Delivered'];
+  const currentStageIndex = stages.indexOf(status);
+  
+  if (status === 'Cancelled') return (
+    <div className="text-red-500 font-medium text-sm flex items-center gap-2">
+      <div className="w-2 h-2 rounded-full bg-red-500"></div> Order Cancelled
+    </div>
+  );
+  if (currentStageIndex === -1) return null;
+
+  return (
+    <div className="w-full mt-2">
+      <div className="relative">
+        <div className="absolute top-3 left-0 w-full h-1 bg-gray-100 rounded-full z-0"></div>
+        <div 
+          className="absolute top-3 left-0 h-1 bg-orange-500 rounded-full z-0 transition-all duration-700 ease-in-out"
+          style={{ width: `${(currentStageIndex / (stages.length - 1)) * 100}%` }}
+        ></div>
+        
+        <div className="relative z-10 flex justify-between">
+          {stages.map((stage, index) => {
+            const isCompleted = index <= currentStageIndex;
+            const isCurrent = index === currentStageIndex;
+            return (
+              <div key={stage} className="flex flex-col items-center">
+                <div 
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold mb-2 transition-colors duration-500 ${
+                    isCompleted 
+                      ? 'bg-orange-500 text-white shadow-md shadow-orange-200' 
+                      : 'bg-white border-2 border-gray-200 text-gray-400'
+                  }`}
+                >
+                  {isCompleted ? <CheckCircle className="w-4 h-4" /> : index + 1}
+                </div>
+                <span className={`text-xs font-semibold ${isCurrent ? 'text-orange-600' : isCompleted ? 'text-gray-700' : 'text-gray-400'}`}>
+                  {stage}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -35,6 +83,11 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return;
     
+    // Request notification permission for true push notifications
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     const socket = io(); // Connects to same origin (proxy will handle)
 
     // Subscribe to specific order rooms if user
@@ -47,6 +100,20 @@ const Dashboard = () => {
     }
 
     socket.on('order_status_update', (data) => {
+      const msg = `Order #${data.orderId.substring(18)} status updated: ${data.status}`;
+      toast.info(msg, {
+        icon: '🚀',
+        style: { borderRadius: '16px', background: '#fff3ea', color: '#ea580c', fontWeight: '600' }
+      });
+      
+      // True Browser Push Notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('CraveBite Update', {
+          body: msg,
+          icon: '/apple-touch-icon.png'
+        });
+      }
+
       setOrders(prevOrders => 
         prevOrders.map(order => 
           order._id === data.orderId ? { ...order, orderStatus: data.status } : order
@@ -145,6 +212,13 @@ const Dashboard = () => {
                   </div>
 
                 </div>
+              </div>
+
+              <div className="mt-8 border-t border-gray-50 pt-6">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Truck className="w-5 h-5 text-orange-500" /> Live Tracking
+                </h4>
+                <OrderTracker status={order.orderStatus} />
               </div>
             </div>
           ))

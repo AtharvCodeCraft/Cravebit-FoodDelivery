@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const crypto = require('crypto');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -11,30 +12,54 @@ const addOrderItems = async (req, res) => {
       deliveryAddress,
       paymentMethod,
       totalAmount,
+      paymentId,
+      razorpayOrderId,
+      razorpaySignature,
     } = req.body;
 
     if (items && items.length === 0) {
       return res.status(400).json({ message: 'No order items' });
-    } else {
-      const order = new Order({
-        userId: req.user._id,
-        restaurantId,
-        items,
-        deliveryAddress,
-        paymentMethod,
-        totalAmount,
-        paymentStatus: 'Pending',
-        orderStatus: 'Placed',
-      });
-
-      const createdOrder = await order.save();
-      
-      // Notify restaurant/admin about new order via socket
-      const io = req.app.get('io');
-      io.emit('new_order', createdOrder);
-
-      res.status(201).json(createdOrder);
     }
+
+    let pStatus = 'Pending';
+
+    // Verify signature for Online payment
+    if (paymentMethod === 'Online' && paymentId && razorpayOrderId && razorpaySignature) {
+      const secret = process.env.RAZORPAY_KEY_SECRET || 'YourKeySecretHere';
+      const generatedSignature = crypto
+        .createHmac('sha256', secret)
+        .update(razorpayOrderId + '|' + paymentId)
+        .digest('hex');
+
+      if (generatedSignature !== razorpaySignature) {
+        return res.status(400).json({ message: 'Payment verification failed' });
+      }
+      pStatus = 'Completed';
+    } else if (paymentMethod === 'Cash') {
+      pStatus = 'Pending'; // Cash will be completed on delivery
+    }
+
+    const order = new Order({
+      userId: req.user._id,
+      restaurantId,
+      items,
+      deliveryAddress,
+      paymentMethod,
+      totalAmount,
+      paymentStatus: pStatus,
+      orderStatus: 'Placed',
+      paymentId,
+      razorpayOrderId,
+      razorpaySignature,
+    });
+
+    const createdOrder = await order.save();
+    
+    // Notify restaurant/admin about new order via socket
+    const io = req.app.get('io');
+    io.emit('new_order', createdOrder);
+
+    res.status(201).json(createdOrder);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

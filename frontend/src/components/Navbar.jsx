@@ -63,8 +63,9 @@ const Navbar = () => {
             </form>
           </div>
 
-          {/* Right Menu */}
-          <div className="hidden md:flex items-center space-x-6">
+          {/* Actions */}
+          <div className="hidden md:flex items-center gap-4">
+            <div id="google_translate_element" className="mr-2"></div>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-full hover:bg-[var(--muted)] text-[var(--foreground)] transition-colors"
