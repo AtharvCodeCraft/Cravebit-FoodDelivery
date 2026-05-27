@@ -72,14 +72,15 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    
+
     const allowedOrigins = [
       process.env.CLIENT_URL,
+      "https://cravebit-food-delivery.vercel.app",
       'http://localhost:3000',
       'http://localhost:5173',
       'http://localhost:80'
     ].filter(Boolean);
-    
+
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
@@ -135,7 +136,7 @@ const startServer = async () => {
   try {
     // Connect to database first
     await connectDB();
-    
+
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
       console.log(`\x1b[35m%s\x1b[0m`, `🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
