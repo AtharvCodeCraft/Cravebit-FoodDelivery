@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronDown, Utensils, Clock, ThumbsUp, Store, Star, ArrowRight } from 'lucide-react';
+import LiveTrackingSection from '../components/LiveTrackingSection';
 
 const LandingPage = () => {
   const handleScroll = () => {
@@ -207,6 +208,9 @@ const LandingPage = () => {
         </div>
       </div>
 
+      {/* LIVE TRACKING SECTION */}
+      <LiveTrackingSection />
+
       {/* WHY CHOOSE US SECTION */}
       <div className="w-full bg-[var(--muted)] py-24 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -278,10 +282,14 @@ const LandingPage = () => {
               </Link>
             </div>
             <div className="lg:w-1/2 relative w-full min-h-[300px] lg:min-h-[500px]">
+              {/* Fade gradient from the red background into the image */}
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600/90 to-transparent z-10 lg:block hidden"></div>
+              <div className="absolute inset-0 bg-gradient-to-b from-red-600/90 to-transparent z-10 lg:hidden block"></div>
+              
               <img 
                 src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1974&auto=format&fit=crop" 
                 alt="Food preparation" 
-                className="absolute inset-0 w-full h-full object-cover rounded-tl-[3rem] lg:rounded-l-[3rem] opacity-90 mix-blend-overlay"
+                className="absolute inset-0 w-full h-full object-cover"
               />
             </div>
           </motion.div>
